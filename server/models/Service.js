@@ -4,49 +4,36 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const ServiceSchema = new Schema({
-  // 1. এই সার্ভিসটা কোন প্রোভাইডার দিচ্ছে?
-  // আমরা এখানে User মডেলের সাথে একটা সম্পর্ক তৈরি করছি।
-  provider: {
-    type: Schema.Types.ObjectId,
-    ref: 'User', // এটা 'User' মডেলকে নির্দেশ করছে
-    required: true,
-  },
-  title: {
+  provider: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  category: { type: String, required: true },
+  price: { type: Number, required: true },
+  
+  // --- লোকেশন সেকশনটা পুরোপুরি বদলে যাবে ---
+
+  // ১. ঠিকানার জন্য একটা সাধারণ স্ট্রিং ফিল্ড
+  address: {
     type: String,
-    required: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-    // ভবিষ্যতে আমরা এখানে ক্যাটাগরি ফিক্স করে দিতে পারি (e.g., enum: ['Salon', 'Doctor'])
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  // 2. গুগল ম্যাপের জন্য সবচেয়ে গুরুত্বপূর্ণ অংশ
-  location: {
+
+  // ২. শুধুমাত্র ম্যাপের কোঅর্ডিনেটসের জন্য একটা আলাদা জিও-অবজেক্ট
+  geoLocation: {
     type: {
       type: String,
-      enum: ['Point'], // GeoJSON টাইপ
-      required: true,
-      default: 'Point',
+      enum: ['Point'],
     },
     coordinates: {
-      type: [Number], // [longitude, latitude] - এই অর্ডারে হবে
-      required: true,
+      type: [Number], // [longitude, latitude]
     },
   },
+  // ------------------------------------
 }, {
   timestamps: true,
 });
 
-// 3. লোকেশন ভিত্তিক সার্চ দ্রুত করার জন্য একটা 2dsphere index তৈরি করা
-ServiceSchema.index({ location: '2dsphere' });
+// আমরা এখন স্পেশাল ইনডেক্সটা শুধুমাত্র geoLocation ফিল্ডের উপর বানাবো
+ServiceSchema.index({ geoLocation: '2dsphere' });
 
 const Service = mongoose.model('Service', ServiceSchema);
 
