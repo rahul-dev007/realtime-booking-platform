@@ -33,7 +33,8 @@ app.use(express.json());
 // --- 4. API Routes ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/services', require('./routes/services'));
-// ভবিষ্যতে আরও রুট এখানে যোগ হবে
+app.use('/api/bookings', require('./routes/bookings')); // <-- এই লাইনটা যোগ করো
+app.use('/api/users', require('./routes/users')); 
 
 // Health check endpoint (good practice)
 app.get('/', (req, res) => {

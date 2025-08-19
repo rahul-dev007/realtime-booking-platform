@@ -1,49 +1,35 @@
-// server/routes/services.js
+// server/routes/services.js (সম্পূর্ণ নতুন এবং সঠিক)
 
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/auth'); // <-- এই লাইনটা জরুরি
+const authMiddleware = require('../middleware/auth');
 
-const Service = require('../models/Service');
-const User = require('../models/User');
+// 1. কন্ট্রোলার থেকে সব প্রয়োজনীয় ফাংশন নিয়ে আসি
+const {
+  getAllServices,
+  getServiceById,
+  createService,
+  getProviderServices
+} = require('../controllers/servicesController');
 
-// --- Create a New Service Endpoint ---
-router.post('/', authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (user.role !== 'PROVIDER') {
-      return res.status(403).json({ msg: 'Access denied. Only providers can create services.' });
-    }
+// --- রুটের সঠিক ক্রম ---
 
-    const { title, description, category, price, address } = req.body;
+// রুট: GET /api/services
+// কাজ: সব সার্ভিস দেখানো (সার্চ, ফিল্টার সহ)
+router.get('/', getAllServices);
 
-    const newService = new Service({
-      provider: req.user.id,
-      title,
-      description,
-      category,
-      price,
-      address,
-    });
+// রুট: GET /api/services/my-services
+// কাজ: প্রোভাইডারের নিজের সার্ভিস দেখানো
+// *** এটাকে /:id এর আগে রাখা হয়েছে ***
+router.get('/my-services', authMiddleware, getProviderServices);
 
-    const service = await newService.save();
-    res.status(201).json(service);
+// রুট: POST /api/services
+// কাজ: নতুন সার্ভিস তৈরি করা
+router.post('/', authMiddleware, createService);
 
-  } catch (err) {
-    console.error(`Error in POST /api/services: ${err.message}`);
-    res.status(500).send('Server Error');
-  }
-});
-
-// --- Get All Services Endpoint ---
-router.get('/', async (req, res) => {
-  try {
-    const services = await Service.find().populate('provider', 'name');
-    res.json(services);
-  } catch (err) {
-    console.error(`Error in GET /api/services: ${err.message}`);
-    res.status(500).send('Server Error');
-  }
-});
+// রুট: GET /api/services/:id
+// কাজ: একটি নির্দিষ্ট সার্ভিস দেখানো
+// *** এটাকে সব শেষে রাখা হয়েছে ***
+router.get('/:id', getServiceById);
 
 module.exports = router;
